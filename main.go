@@ -2,22 +2,46 @@ package main
 
 import (
 	"fmt"
+	"math/rand"
 	"time"
 )
 
-func main() {
-	channel := make(chan string, 2)
-	channel <- "First Message"
-	channel <- "second Message"
-	fmt.Println(<-channel)
-	fmt.Println(<-channel)
-
+type Shape interface {
+	Area() float64
+	Perimeter() float64
 }
 
-func attack(target string, attacked chan bool) {
-	time.Sleep(time.Second)
+type Rectangle struct {
+	width, height float64
+}
 
-	fmt.Println("Throwing ninja stars at ", target)
-	attacked <- true
+func (r Rectangle) Area() float64 {
+	return r.width * r.height
+}
 
+func (r Rectangle) Perimeter() float64 {
+	return (2 * r.width) + (2 * r.height)
+}
+
+func main() {
+	channel := make(chan string)
+	//numRounds := 3
+	go throwingNinjaStar(channel)
+	for {
+		message, open := <-channel
+		if !open {
+			break
+		}
+		fmt.Println(message)
+	}
+}
+
+func throwingNinjaStar(channel chan string) {
+	rand.Seed(time.Now().UnixNano())
+	numRounds := 3
+	for i := 0; i < numRounds; i++ {
+		score := rand.Intn(10)
+		channel <- fmt.Sprint("You scored: ", score)
+	}
+	close(channel)
 }
