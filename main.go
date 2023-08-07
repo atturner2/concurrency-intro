@@ -1,20 +1,28 @@
 package main
 
-import "fmt"
+import (
+	"fmt"
+	"sync"
+)
 
 func main() {
-	ninja1, ninja2 := make(chan string), make(chan string)
 
-	go captainElect(ninja1, "Ninja 1")
-	go captainElect(ninja2, "Ninja 2")
-
-	select {
-	case message := <-ninja1:
-		fmt.Println(message)
-	case message := <-ninja2:
-		fmt.Println(message)
+	var beeper sync.WaitGroup
+	evilNinjas := []string{"Tommy", "Johnny", "Bobby"}
+	beeper.Add(len(evilNinjas))
+	for _, evilNinja := range evilNinjas {
+		go attack(evilNinja, &beeper)
 	}
 
+	beeper.Wait()
+	fmt.Println("Mission completed")
+	//maine executes before the other one can
+}
+
+// deadlock because we pass in the beeper by value, it needs to be a pointer
+func attack(evilNinja string, beeper *sync.WaitGroup) {
+	fmt.Println("Attacked evil ninja: ", evilNinja)
+	beeper.Done()
 }
 
 func captainElect(ninja chan string, message string) {
