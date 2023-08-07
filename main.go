@@ -3,20 +3,29 @@ package main
 import (
 	"fmt"
 	"sync"
+	"time"
+)
+
+var (
+	lock  sync.Mutex
+	count int
 )
 
 func main() {
 
-	var beeper sync.WaitGroup
-	evilNinjas := []string{"Tommy", "Johnny", "Bobby"}
-	beeper.Add(len(evilNinjas))
-	for _, evilNinja := range evilNinjas {
-		go attack(evilNinja, &beeper)
-	}
+	iterations := 10000
 
-	beeper.Wait()
-	fmt.Println("Mission completed")
-	//maine executes before the other one can
+	for i := 0; i < iterations; i++ {
+		go increment()
+	}
+	time.Sleep(1 * time.Second)
+	fmt.Println("Resulted count is: ", count)
+}
+
+func increment() {
+	lock.Lock()
+	count++
+	lock.Unlock()
 }
 
 // deadlock because we pass in the beeper by value, it needs to be a pointer
